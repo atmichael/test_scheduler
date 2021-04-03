@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BcpLibrary.Model;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,6 @@ namespace BcpLibrary
 {
     public interface ISchedulerLibrary
     {
-         int GetNumberOfPatterns(decimal targetPercent); 
+         PatternInfo GetPatternInfo(decimal targetPercent, int populationSize); 
     }
 }

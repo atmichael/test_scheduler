@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BcpLibrary.Model;
 
 namespace BcpLibrary.Tests
 {
@@ -26,7 +27,7 @@ namespace BcpLibrary.Tests
             string error = "";
             try
             {
-                int numberOfPatterns = m_lib.GetNumberOfPatterns(-1);
+                PatternInfo info = m_lib.GetPatternInfo(-1, 100);
             }
             catch(Exception ex)
             {
@@ -43,7 +44,7 @@ namespace BcpLibrary.Tests
             string error = "";
             try
             {
-                int numberOfPatterns = m_lib.GetNumberOfPatterns((decimal)100.01);
+                PatternInfo info = m_lib.GetPatternInfo((decimal)100.01, 100);
             }
             catch (Exception ex)
             {
@@ -56,52 +57,79 @@ namespace BcpLibrary.Tests
         [TestMethod()]
         public void Assert_ReturnOneIfZero()
         {
-            int numberOfPatterns = m_lib.GetNumberOfPatterns(0);
-            Assert.AreEqual(1, numberOfPatterns); 
+            PatternInfo info = m_lib.GetPatternInfo(0, 100);
+            Assert.AreEqual(1, info.patternCount);
+            Assert.AreEqual("H", info.defaultMode);
+            Assert.AreEqual("O", info.alternateMode);
         }
 
         [TestMethod()]
         public void Assert_ReturnOneIf100()
         {
-            int numberOfPatterns = m_lib.GetNumberOfPatterns(100);
-            Assert.AreEqual(1, numberOfPatterns);
+            PatternInfo info = m_lib.GetPatternInfo(100, 100);
+            Assert.AreEqual(1, info.patternCount);
+            Assert.AreEqual("O", info.defaultMode);
+            Assert.AreEqual("H", info.alternateMode);
         }
 
         [TestMethod()]
         public void Assert_Return4If75()
         {
-            AssertReturnValueWhenTarget((decimal)75.0, 4);
+            PatternInfo expected = new PatternInfo(4, "O", "H"); 
+            AssertReturnValueWhenTarget((decimal)75.0, 100, expected);
         }
 
         [TestMethod()]
         public void Assert_Return5If80()
         {
-            AssertReturnValueWhenTarget((decimal)80.0, 5); 
+            PatternInfo expected = new PatternInfo(5, "O", "H");
+            AssertReturnValueWhenTarget((decimal)80.0, 100, expected); 
         }
 
 
         [TestMethod()]
         public void Assert_Returns4If79()
         {
-            AssertReturnValueWhenTarget((decimal)79.0, 4);
+            PatternInfo expected = new PatternInfo(4, "O", "H");
+            AssertReturnValueWhenTarget((decimal)79.0, 100, expected);
         }
 
         [TestMethod()]
         public void Assert_Returns4If76()
         {
-            AssertReturnValueWhenTarget((decimal)76.0, 4);
+            PatternInfo expected = new PatternInfo(4, "O", "H");
+            AssertReturnValueWhenTarget((decimal)76.0, 100, expected);
         }
 
         [TestMethod()]
         public void Assert_Returns6If85()
         {
-            AssertReturnValueWhenTarget((decimal)85.0, 6);
+            PatternInfo expected = new PatternInfo(6, "O", "H");
+            AssertReturnValueWhenTarget((decimal)85.0, 100, expected);
         }
 
-        private void AssertReturnValueWhenTarget(decimal target, int returnValue)
+        [TestMethod()]
+        public void Assert_Returns3If34()
         {
-            int numberOfPatterns = m_lib.GetNumberOfPatterns(target);
-            Assert.AreEqual(returnValue, numberOfPatterns);
+            PatternInfo expected = new PatternInfo(3, "H", "O");
+            AssertReturnValueWhenTarget((decimal)34.0, 200, expected);
+        }
+
+
+        private void AssertReturnValueWhenTarget(decimal target, int populationSize, PatternInfo returnValue)
+        {
+            PatternInfo info = m_lib.GetPatternInfo(target, populationSize);
+            Assert.AreEqual(returnValue.patternCount, info.patternCount);
+            Assert.AreEqual(returnValue.defaultMode, info.defaultMode);
+            Assert.AreEqual(returnValue.alternateMode, info.alternateMode);
+            if (returnValue.defaultMode.Equals("O"))
+            {
+                Assert.IsTrue((1 / returnValue.patternCount) <= target);
+            }
+            else
+            {
+                Assert.IsTrue((1 - (1 / returnValue.patternCount)) <= target);
+            }
         }
 
     }

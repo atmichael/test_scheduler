@@ -1,22 +1,24 @@
 ﻿using BcpLibrary;
+using BcpLibrary.Model;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BcpLibraryConsole
 {
     class Program
     {
-        static int m_numberOfWeeks; 
-        static decimal? m_target = null; 
+        static int m_numberOfWeeks;
+        static decimal? m_target = null;
+        static int? m_populationSize = null;
+        static bool m_isDefaultWorkFromHome;
+        static string m_default;
+        static string m_alternate;
         static void Main(string[] args)
         {
             InitializeNumberOfWeekInCurrentYear();
 
             GetTargetValueFromInput();
+            GetPopulationSizeFromInput();
 
             int factor = GetNumberOfPatternsToGenerate();
 
@@ -37,8 +39,8 @@ namespace BcpLibraryConsole
                 int offset = factorIndex;
                 for (int weekIndex = 0; weekIndex < m_numberOfWeeks; weekIndex++)
                 {
-                    bool isWorkFromHomeDay = ((weekIndex - offset) % factor) == 0;
-                    patternContent[weekIndex + 1] = isWorkFromHomeDay? "H": "O";
+                    bool isDueForAlternate = ((weekIndex - offset) % factor) == 0;
+                    patternContent[weekIndex + 1] = isDueForAlternate ? m_alternate : m_default;
                 }
                 Console.WriteLine(string.Join("|", patternContent));
             }
@@ -48,16 +50,49 @@ namespace BcpLibraryConsole
             Console.ReadLine();
         }
 
+        private static void GetPopulationSizeFromInput()
+        {
+            while (!m_populationSize.HasValue)
+            {
+                Console.WriteLine(Messages.prompt_getPopulationSize);
+                string inputvalue = Console.ReadLine();
+
+                if (int.TryParse(inputvalue, out var target))
+                {
+                    if (target > 0)
+                    {
+                        m_populationSize = target;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Please enter a positive number");
+                    }
+
+                }
+                else
+                {
+                    Console.WriteLine("Please enter a positive number");
+                }
+            }
+            Console.WriteLine(string.Format("Population Size is : {0}", m_populationSize));
+        }
+
         private static int GetNumberOfPatternsToGenerate()
         {
             ISchedulerLibrary lib = new SchedulerLibrary();
 
-            int factor = lib.GetNumberOfPatterns(m_target.Value);
+            PatternInfo pattern = lib.GetPatternInfo(m_target.Value, m_populationSize.Value);
 
-            Console.WriteLine(string.Format("Number of patterns to generate : {0}", factor));
-            decimal effective = 100 - (100 / factor);
+            m_isDefaultWorkFromHome = pattern.defaultMode.Equals("H");
+            m_default = pattern.defaultMode;
+            m_alternate = pattern.alternateMode;
+
+            Console.WriteLine(string.Format("Number of patterns to generate : {0}", Math.Abs(pattern.patternCount)));
+            Console.WriteLine(string.Format("Default working mode is (O for office, H for Home): {0}", m_default));
+            decimal effective = m_isDefaultWorkFromHome ? (100 / Math.Abs(pattern.patternCount)) : 100 - (100 / pattern.patternCount);
+
             Console.WriteLine(string.Format("Max number of people in office will be : {0:N2}%", effective));
-            return factor;
+            return Math.Abs(pattern.patternCount);
         }
 
         private static void GetTargetValueFromInput()
@@ -77,8 +112,9 @@ namespace BcpLibraryConsole
                     {
                         Console.WriteLine("Please enter a number between 0.00 to 100.00");
                     }
-                    
-                } else
+
+                }
+                else
                 {
                     Console.WriteLine("Please enter a number between 0.00 to 100.00");
                 }

@@ -61,6 +61,15 @@ namespace BcpLibraryConsole {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Please enter population size.
+        /// </summary>
+        internal static string prompt_getPopulationSize {
+            get {
+                return ResourceManager.GetString("prompt_getPopulationSize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Please enter target work from office percent.
         /// </summary>
         internal static string prompt_getTargetWFO {
